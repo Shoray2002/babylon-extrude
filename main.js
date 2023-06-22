@@ -3,7 +3,7 @@ import * as BABYLON from "babylonjs";
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
-let faceNormal = null;
+let face, faceNormal;
 const dial = document.getElementById("extrude");
 
 const createScene = function () {
@@ -68,7 +68,7 @@ const createScene = function () {
   scene.onPointerDown = function (ev, pickResult) {
     if (pickResult.hit && pickResult.pickedMesh.name === "box") {
       const box = pickResult.pickedMesh;
-      const face = Math.floor(pickResult.faceId / 2);
+      face = Math.floor(pickResult.faceId / 2);
       const clickedFaceColor = new BABYLON.Color4(0.83, 0.33, 0, 1);
       const resetColor = new BABYLON.Color3(0.85, 0.85, 0.85);
       faceNormal = pickResult.getNormal(true);
@@ -98,20 +98,26 @@ const createScene = function () {
   dial.addEventListener("input", function (e) {
     const extrude = e.target.value;
     const extrudeVector = faceNormal.scale(extrude);
+
     const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    const nbVertices = positions.length / 3;
-    const newPositions = [];
-    for (let i = 0; i < nbVertices; i++) {
+    const indices = cube.getIndices();
+    const newPositions = positions.slice(); // Create a copy of the original positions array
+
+    for (let i = 0; i < 6; i++) {
+      const vertexIndex = indices[3 * face * 2 + i];
       const vertex = new BABYLON.Vector3(
-        positions[3 * i],
-        positions[3 * i + 1],
-        positions[3 * i + 2]
+        positions[3 * vertexIndex],
+        positions[3 * vertexIndex + 1],
+        positions[3 * vertexIndex + 2]
       );
       const newPosition = vertex.add(extrudeVector);
-      newPositions.push(newPosition.x, newPosition.y, newPosition.z);
+      newPositions[3 * vertexIndex] = newPosition.x;
+      newPositions[3 * vertexIndex + 1] = newPosition.y;
+      newPositions[3 * vertexIndex + 2] = newPosition.z;
     }
+
     cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-    cube.enableEdgesRendering();
+    // cube.enableEdgesRendering();
   });
 
   return scene;
@@ -125,3 +131,15 @@ engine.runRenderLoop(function () {
 window.addEventListener("resize", function () {
   engine.resize();
 });
+
+function getAdjacentFaces(face) {
+  const adjacentFaces = [
+    [1, 3, 4],
+    [0, 2, 4],
+    [1, 3, 5],
+    [0, 2, 5],
+    [0, 1, 5],
+    [2, 3, 4],
+  ];
+  return adjacentFaces[face];
+}

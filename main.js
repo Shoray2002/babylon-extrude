@@ -61,7 +61,7 @@ const createScene = function () {
     dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
   });
   cube.addBehavior(dragBehavior);
-  dragBehavior.moveAttached = false;
+  dragBehavior.moveAttached = false;  
 
   const ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
@@ -119,15 +119,13 @@ const createScene = function () {
     } else if (faceNormal.z === 1) {
       axis = new BABYLON.Vector3(0, 0, 1);
     } else if (faceNormal.x === -1) {
-      axis = new BABYLON.Vector3(-1, 0, 0);
+      axis = new BABYLON.Vector3(1, 0, 0);
     } else if (faceNormal.y === -1) {
-      axis = new BABYLON.Vector3(0, -1, 0);
+      axis = new BABYLON.Vector3(0, 1, 0);
     } else if (faceNormal.z === -1) {
-      axis = new BABYLON.Vector3(0, 0, -1);
+      axis = new BABYLON.Vector3(0, 0, 1);
     }
-    console.log(delta);
     const sign = Math.sign(delta.x + delta.y + delta.z);
-    console.log(sign);
     const extrudeVector = axis.scale(sign * delta.length());
     const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
     const indices = cube.getIndices();
@@ -144,9 +142,8 @@ const createScene = function () {
       newPositions[3 * vertexIndex + 1] = newPosition.y;
       newPositions[3 * vertexIndex + 2] = newPosition.z;
     }
-
     cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-    cube.enableEdgesRendering();
+    // cube.enableEdgesRendering();
   });
 
   return scene;

@@ -1,5 +1,4 @@
 import * as BABYLON from "babylonjs";
-import { gsap } from "gsap";
 console.clear();
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });

@@ -4,7 +4,8 @@ const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
 let face, faceNormal, delta;
-let oldFacePositions = []
+let oldFacePositions = [];
+let newFacePositions = [];
 const dial = document.getElementById("extrude");
 
 const createScene = function () {
@@ -37,7 +38,7 @@ const createScene = function () {
   );
   cube.position.y = 0.52;
   var material = new BABYLON.StandardMaterial(scene);
-  
+
   cube.material = material;
   cube.material.backFaceCulling = false;
 
@@ -136,7 +137,6 @@ const createScene = function () {
     }
     const sign = Math.sign(delta.x + delta.y + delta.z);
     const extrudeVector = axis.scale(sign * delta.length());
-    console.log(extrudeVector);
     const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
     const indices = cube.getIndices();
     const newPositions = positions.slice();
@@ -159,6 +159,19 @@ const createScene = function () {
     const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
     const indices = cube.getIndices();
     console.log("Old face positions:", oldFacePositions);
+    newFacePositions = [];
+    for (let i = 0; i < 6; i++) {
+      const vertexIndex = indices[3 * face * 2 + i];
+      const vertexPosition = new BABYLON.Vector3(
+        positions[3 * vertexIndex],
+        positions[3 * vertexIndex + 1],
+        positions[3 * vertexIndex + 2]
+      );
+      if (!newFacePositions.some((pos) => pos.equals(vertexPosition))) {
+        newFacePositions.push(vertexPosition);
+      }
+    }
+    console.log("New face positions:", newFacePositions);
     const sharedVertices = [];
     for (let i = 0; i < positions.length / 3; i++) {
       const currentPosition = new BABYLON.Vector3(
@@ -174,11 +187,33 @@ const createScene = function () {
       }
     }
     console.log("Shared vertices:", sharedVertices);
-    
+    const newPositions = positions.slice();
+    for (let i = 0; i < oldFacePositions.length; i++) {
+      const currentOldVertex = oldFacePositions[i];
+      const currentNewVertex = newFacePositions[i];
+      const delta = currentNewVertex.subtract(currentOldVertex);
+      for (let j = 0; j < newPositions.length / 3; j++) {
+        const currentPosition = new BABYLON.Vector3(
+          newPositions[3 * j],
+          newPositions[3 * j + 1],
+          newPositions[3 * j + 2]
+        );
+        for (const sharedVertex of sharedVertices) {
+          if (currentPosition.equals(sharedVertex)) {
+            newPositions[3 * j] += delta.x;
+            newPositions[3 * j + 1] += delta.y;
+            newPositions[3 * j + 2] += delta.z;
+            break;
+          }
+        }
+      }
+    }
+    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
     cube.enableEdgesRendering();
   });
   return scene;
 };
+
 const scene = createScene();
 
 engine.runRenderLoop(function () {
@@ -188,7 +223,6 @@ engine.runRenderLoop(function () {
 window.addEventListener("resize", function () {
   engine.resize();
 });
-
 
 function changeVertex(vertexIndex, extrudeVector) {
   const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);

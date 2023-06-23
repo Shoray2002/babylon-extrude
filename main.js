@@ -2,17 +2,17 @@ import * as BABYLON from "babylonjs";
 
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
-
+const distanceArial = document.getElementById("distance");
+const resetButton = document.getElementById("reset");
 let face, faceNormal, delta;
 let oldFacePositions = [];
 let newFacePositions = [];
-const dial = document.getElementById("extrude");
-
+let distance = 0;
 const createScene = function () {
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color3(0.75, 0.75, 0.75);
   scene.ambientColor = new BABYLON.Color3(0.75, 0.75, 0.75);
-  var camera = new BABYLON.ArcRotateCamera(
+  let camera = new BABYLON.ArcRotateCamera(
     "Camera",
     0,
     0,
@@ -20,7 +20,6 @@ const createScene = function () {
     BABYLON.Vector3.Zero(),
     scene
   );
-
   camera.setPosition(new BABYLON.Vector3(2, 5, 8));
   camera.attachControl(canvas, true);
 
@@ -31,27 +30,26 @@ const createScene = function () {
   );
   light.intensity = 1;
 
-  var cube = BABYLON.MeshBuilder.CreateBox(
+  let cube = BABYLON.MeshBuilder.CreateBox(
     "box",
     { width: 1, height: 1, depth: 1, updatable: true },
     scene
   );
   cube.position.y = 0.52;
-  var material = new BABYLON.StandardMaterial(scene);
-
+  let material = new BABYLON.StandardMaterial(scene);
   cube.material = material;
   cube.material.backFaceCulling = false;
 
-  var positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-  var nbVertices = positions.length / 3;
-  var colors = [];
-  var clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
-  for (var i = 0; i < nbVertices; i++) {
+  let positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+  let nbVertices = positions.length / 3;
+  let colors = [];
+  let clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
+  for (let i = 0; i < nbVertices; i++) {
     colors.push(clr.r, clr.g, clr.b, clr.a);
   }
-  var indices = cube.getIndices();
+  let indices = cube.getIndices();
   if (!colors) {
-    var colors = new Array(4 * nbVertices);
+    let colors = new Array(4 * nbVertices);
     colors = colors.fill(1);
   }
   cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
@@ -59,12 +57,14 @@ const createScene = function () {
   cube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
   cube.edgesWidth = 2.0;
 
+
   const dragBehavior = new BABYLON.PointerDragBehavior({
     dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
   });
   cube.addBehavior(dragBehavior);
   dragBehavior.moveAttached = false;
-
+  
+  
   const ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
     { width: 100, height: 100 },
@@ -152,13 +152,6 @@ const createScene = function () {
       newPositions[3 * vertexIndex + 1] = newPosition.y;
       newPositions[3 * vertexIndex + 2] = newPosition.z;
     }
-    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-  });
-
-  dragBehavior.onDragEndObservable.add((event) => {
-    const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    const indices = cube.getIndices();
-    console.log("Old face positions:", oldFacePositions);
     newFacePositions = [];
     for (let i = 0; i < 6; i++) {
       const vertexIndex = indices[3 * face * 2 + i];
@@ -171,7 +164,25 @@ const createScene = function () {
         newFacePositions.push(vertexPosition);
       }
     }
-    console.log("New face positions:", newFacePositions);
+    distance = newFacePositions[0].subtract(oldFacePositions[0]).length();
+    distanceArial.innerText = distance.toFixed(2);
+    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
+  });
+  dragBehavior.onDragEndObservable.add((event) => {
+    const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    const indices = cube.getIndices();
+    newFacePositions = [];
+    for (let i = 0; i < 6; i++) {
+      const vertexIndex = indices[3 * face * 2 + i];
+      const vertexPosition = new BABYLON.Vector3(
+        positions[3 * vertexIndex],
+        positions[3 * vertexIndex + 1],
+        positions[3 * vertexIndex + 2]
+      );
+      if (!newFacePositions.some((pos) => pos.equals(vertexPosition))) {
+        newFacePositions.push(vertexPosition);
+      }
+    }
     const sharedVertices = [];
     for (let i = 0; i < positions.length / 3; i++) {
       const currentPosition = new BABYLON.Vector3(
@@ -186,7 +197,6 @@ const createScene = function () {
         }
       }
     }
-    console.log("Shared vertices:", sharedVertices);
     const newPositions = positions.slice();
     for (let i = 0; i < oldFacePositions.length; i++) {
       const currentOldVertex = oldFacePositions[i];
@@ -211,6 +221,34 @@ const createScene = function () {
     cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
     cube.enableEdgesRendering();
   });
+  resetButton.addEventListener("click", () => {
+    cube.dispose();
+    cube = BABYLON.MeshBuilder.CreateBox(
+      "box",
+      { width: 1, height: 1, depth: 1, updatable: true },
+      scene
+    );
+    cube.position.y = 0.52;
+    cube.material = material;
+    cube.material.backFaceCulling = false;
+    positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    nbVertices = positions.length / 3;
+    colors = [];
+    clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
+    for (let i = 0; i < nbVertices; i++) {
+      colors.push(clr.r, clr.g, clr.b, clr.a);
+    }
+    indices = cube.getIndices();
+    if (!colors) {
+      let colors = new Array(4 * nbVertices);
+      colors = colors.fill(1);
+    }
+    cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    cube.enableEdgesRendering();
+    cube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
+    cube.edgesWidth = 2.0;
+    cube.addBehavior(dragBehavior);
+  });
   return scene;
 };
 
@@ -224,18 +262,6 @@ window.addEventListener("resize", function () {
   engine.resize();
 });
 
-function changeVertex(vertexIndex, extrudeVector) {
-  const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-  const indices = cube.getIndices();
-  const newPositions = positions.slice();
-  const vertex = new BABYLON.Vector3(
-    positions[3 * vertexIndex],
-    positions[3 * vertexIndex + 1],
-    positions[3 * vertexIndex + 2]
-  );
-  const newPosition = vertex.add(extrudeVector);
-  newPositions[3 * vertexIndex] = newPosition.x;
-  newPositions[3 * vertexIndex + 1] = newPosition.y;
-  newPositions[3 * vertexIndex + 2] = newPosition.z;
-  cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-}
+
+
+

@@ -1,9 +1,11 @@
 import * as BABYLON from "babylonjs";
-
+import { gsap } from "gsap";
+console.clear();
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 const distanceArial = document.getElementById("distance");
 const resetButton = document.getElementById("reset");
+
 let face, faceNormal, delta;
 let oldFacePositions = [];
 let newFacePositions = [];
@@ -17,18 +19,14 @@ const createScene = function () {
     0,
     0,
     20,
-    BABYLON.Vector3.Zero(),
+    BABYLON.Vector3(0,0,0),
     scene
   );
-  camera.setPosition(new BABYLON.Vector3(2, 5, 8));
+  camera.lowerRadiusLimit = 5;
+  camera.upperRadiusLimit = 25;
+  camera.upperBetaLimit = Math.PI / 2 - 0.05;
+  camera.setPosition(new BABYLON.Vector3(2, 4, 10));
   camera.attachControl(canvas, true);
-
-  const light = new BABYLON.HemisphericLight(
-    "light",
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
-  light.intensity = 1;
 
   let cube = BABYLON.MeshBuilder.CreateBox(
     "box",
@@ -55,7 +53,16 @@ const createScene = function () {
   cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
   cube.enableEdgesRendering();
   cube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
-  cube.edgesWidth = 2.0;
+  cube.edgesWidth = 2;
+  cube.disableLighting = true;
+
+
+  const light = new BABYLON.HemisphericLight(
+    "light",
+    new BABYLON.Vector3(0, 1, 0),
+    scene
+  );
+  light.intensity = 1;
 
 
   const dragBehavior = new BABYLON.PointerDragBehavior({
@@ -71,7 +78,7 @@ const createScene = function () {
     scene
   );
   ground.material = new BABYLON.StandardMaterial("groundMat", scene);
-  ground.material.diffuseColor = new BABYLON.Color3(0.9, 0.937, 0.9);
+  ground.material.diffuseColor = new BABYLON.Color3(0.9, 0.94, 0.9);
   ground.material.specularColor = new BABYLON.Color3(0, 0, 0);
   ground.material.backFaceCulling = false;
 
@@ -79,7 +86,7 @@ const createScene = function () {
     if (pickResult.hit && pickResult.pickedMesh.name === "box") {
       const box = pickResult.pickedMesh;
       face = Math.floor(pickResult.faceId / 2);
-      const clickedFaceColor = new BABYLON.Color4(0.83, 0.33, 0, 1);
+      const clickedFaceColor = new BABYLON.Color4(1, 0.1, 0, 1);
       const resetColor = new BABYLON.Color3(0.85, 0.85, 0.85);
       faceNormal = pickResult.getNormal(true);
       faceNormal = new BABYLON.Vector3(

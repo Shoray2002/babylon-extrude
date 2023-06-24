@@ -1,14 +1,16 @@
 import * as BABYLON from "babylonjs";
-console.clear();
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 const distanceArial = document.getElementById("distance");
 const resetButton = document.getElementById("reset");
 
-let face, faceNormal, delta;
+let cube,face, faceNormal, delta, cube2;
 let oldFacePositions = [];
 let newFacePositions = [];
+let tempPositions = [];
 let distance = 0;
+
+
 const createScene = function () {
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color3(0.75, 0.75, 0.75);
@@ -18,7 +20,7 @@ const createScene = function () {
     0,
     0,
     20,
-    BABYLON.Vector3(0,0,0),
+    BABYLON.Vector3(0, 0, 0),
     scene
   );
   camera.lowerRadiusLimit = 5;
@@ -27,13 +29,14 @@ const createScene = function () {
   camera.setPosition(new BABYLON.Vector3(2, 4, 10));
   camera.attachControl(canvas, true);
 
-  let cube = BABYLON.MeshBuilder.CreateBox(
+  cube = BABYLON.MeshBuilder.CreateBox(
     "box",
     { width: 1, height: 1, depth: 1, updatable: true },
     scene
   );
   cube.position.y = 0.52;
   let material = new BABYLON.StandardMaterial(scene);
+  material.specularColor = new BABYLON.Color3(0, 0, 0);
   cube.material = material;
   cube.material.backFaceCulling = false;
 
@@ -55,7 +58,6 @@ const createScene = function () {
   cube.edgesWidth = 2;
   cube.disableLighting = true;
 
-
   const light = new BABYLON.HemisphericLight(
     "light",
     new BABYLON.Vector3(0, 1, 0),
@@ -63,14 +65,12 @@ const createScene = function () {
   );
   light.intensity = 1;
 
-
   const dragBehavior = new BABYLON.PointerDragBehavior({
     dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
   });
   cube.addBehavior(dragBehavior);
   dragBehavior.moveAttached = false;
-  
-  
+
   const ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
     { width: 100, height: 100 },
@@ -143,9 +143,9 @@ const createScene = function () {
     }
     const sign = Math.sign(delta.x + delta.y + delta.z);
     const extrudeVector = axis.scale(sign * delta.length());
-    const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    const indices = cube.getIndices();
-    const newPositions = positions.slice();
+    let positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    let indices = cube.getIndices();
+    let newPositions = positions.slice();
     for (let i = 0; i < 6; i++) {
       const vertexIndex = indices[3 * face * 2 + i];
       const vertex = new BABYLON.Vector3(
@@ -172,23 +172,9 @@ const createScene = function () {
     }
     distance = newFacePositions[0].subtract(oldFacePositions[0]).length();
     distanceArial.innerText = distance.toFixed(2);
-    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-  });
-  dragBehavior.onDragEndObservable.add((event) => {
-    const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    const indices = cube.getIndices();
-    newFacePositions = [];
-    for (let i = 0; i < 6; i++) {
-      const vertexIndex = indices[3 * face * 2 + i];
-      const vertexPosition = new BABYLON.Vector3(
-        positions[3 * vertexIndex],
-        positions[3 * vertexIndex + 1],
-        positions[3 * vertexIndex + 2]
-      );
-      if (!newFacePositions.some((pos) => pos.equals(vertexPosition))) {
-        newFacePositions.push(vertexPosition);
-      }
-    }
+
+    positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    indices = cube.getIndices();
     const sharedVertices = [];
     for (let i = 0; i < positions.length / 3; i++) {
       const currentPosition = new BABYLON.Vector3(
@@ -203,30 +189,53 @@ const createScene = function () {
         }
       }
     }
-    const newPositions = positions.slice();
+    tempPositions = positions.slice();
     for (let i = 0; i < oldFacePositions.length; i++) {
       const currentOldVertex = oldFacePositions[i];
       const currentNewVertex = newFacePositions[i];
       const delta = currentNewVertex.subtract(currentOldVertex);
-      for (let j = 0; j < newPositions.length / 3; j++) {
+      for (let j = 0; j < tempPositions.length / 3; j++) {
         const currentPosition = new BABYLON.Vector3(
-          newPositions[3 * j],
-          newPositions[3 * j + 1],
-          newPositions[3 * j + 2]
+          tempPositions[3 * j],
+          tempPositions[3 * j + 1],
+          tempPositions[3 * j + 2]
         );
         for (const sharedVertex of sharedVertices) {
           if (currentPosition.equals(sharedVertex)) {
-            newPositions[3 * j] += delta.x;
-            newPositions[3 * j + 1] += delta.y;
-            newPositions[3 * j + 2] += delta.z;
+            tempPositions[3 * j] += delta.x;
+            tempPositions[3 * j + 1] += delta.y;
+            tempPositions[3 * j + 2] += delta.z;
             break;
           }
         }
       }
     }
+    if (cube2) {
+      cube2.dispose();
+    }
+    cube2 = BABYLON.MeshBuilder.CreateBox(
+      "box",
+      { updatable: true },
+      scene
+    );
+    cube2.position = cube.position;
+    cube2.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    let material2 = new BABYLON.StandardMaterial("material2", scene);
+    material2.specularColor = new BABYLON.Color3(0, 0, 0);
+    material2.alpha = 0.8;
+    cube2.material = material2;
     cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
+    cube2.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
+  });
+
+  dragBehavior.onDragEndObservable.add((event) => {
+    if (cube2) {
+      cube2.dispose();
+    }
+    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
     cube.enableEdgesRendering();
   });
+
   resetButton.addEventListener("click", () => {
     cube.dispose();
     cube = BABYLON.MeshBuilder.CreateBox(
@@ -255,6 +264,7 @@ const createScene = function () {
     cube.edgesWidth = 2.0;
     cube.addBehavior(dragBehavior);
   });
+
   return scene;
 };
 
@@ -268,6 +278,75 @@ window.addEventListener("resize", function () {
   engine.resize();
 });
 
+// let showAxis = function (size) {
+//   let makeTextPlane = function (text, color, size) {
+//     let dynamicTexture = new BABYLON.DynamicTexture(
+//       "DynamicTexture",
+//       50,
+//       scene,
+//       true
+//     );
+//     dynamicTexture.hasAlpha = true;
+//     dynamicTexture.drawText(
+//       text,
+//       5,
+//       40,
+//       "bold 36px Arial",
+//       color,
+//       "transparent",
+//       true
+//     );
+//     let plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
+//     plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
+//     plane.material.backFaceCulling = false;
+//     plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+//     plane.material.diffuseTexture = dynamicTexture;
+//     return plane;
+//   };
 
+//   let axisX = BABYLON.Mesh.CreateLines(
+//     "axisX",
+//     [
+//       new BABYLON.Vector3.Zero(),
+//       new BABYLON.Vector3(size, 0, 0),
+//       new BABYLON.Vector3(size * 0.95, 0.05 * size, 0),
+//       new BABYLON.Vector3(size, 0, 0),
+//       new BABYLON.Vector3(size * 0.95, -0.05 * size, 0),
+//     ],
+//     scene
+//   );
+//   axisX.color = new BABYLON.Color3(1, 0, 0);
+//   let xChar = makeTextPlane("X", "red", size / 10);
+//   xChar.position = new BABYLON.Vector3(0.9 * size, -0.05 * size, 0);
 
+//   let axisY = BABYLON.Mesh.CreateLines(
+//     "axisY",
+//     [
+//       new BABYLON.Vector3.Zero(),
+//       new BABYLON.Vector3(0, size, 0),
+//       new BABYLON.Vector3(-0.05 * size, size * 0.95, 0),
+//       new BABYLON.Vector3(0, size, 0),
+//       new BABYLON.Vector3(0.05 * size, size * 0.95, 0),
+//     ],
+//     scene
+//   );
+//   axisY.color = new BABYLON.Color3(0, 1, 0);
+//   let yChar = makeTextPlane("Y", "green", size / 10);
+//   yChar.position = new BABYLON.Vector3(0, 0.9 * size, -0.05 * size);
 
+//   let axisZ = BABYLON.Mesh.CreateLines(
+//     "axisZ",
+//     [
+//       new BABYLON.Vector3.Zero(),
+//       new BABYLON.Vector3(0, 0, size),
+//       new BABYLON.Vector3(0, -0.05 * size, size * 0.95),
+//       new BABYLON.Vector3(0, 0, size),
+//       new BABYLON.Vector3(0, 0.05 * size, size * 0.95),
+//     ],
+//     scene
+//   );
+//   axisZ.color = new BABYLON.Color3(0, 0, 1);
+//   let zChar = makeTextPlane("Z", "blue", size / 10);
+//   zChar.position = new BABYLON.Vector3(0, 0.05 * size, 0.9 * size);
+// };
+// showAxis(10);

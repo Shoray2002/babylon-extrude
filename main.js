@@ -4,18 +4,30 @@ const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 const distanceArial = document.getElementById("distance");
 const resetButton = document.getElementById("reset");
 
-let cube,face, faceNormal, delta, cube2;
-let oldFacePositions = [];
-let newFacePositions = [];
-let tempPositions = [];
-let distance = 0;
-
+// scene variables
+let camera,
+  light,
+  mainCube,
+  ground,
+  face,
+  faceNormal,
+  delta,
+  tempCube,
+  distance = 0,
+  mainCubeMaterial,
+  tempCubeMaterial;
+let positions = [],
+  colors = [],
+  indices = [],
+  oldFacePositions = [],
+  newFacePositions = [],
+  tempPositions = [];
 
 const createScene = function () {
   const scene = new BABYLON.Scene(engine);
   scene.clearColor = new BABYLON.Color3(0.75, 0.75, 0.75);
   scene.ambientColor = new BABYLON.Color3(0.75, 0.75, 0.75);
-  let camera = new BABYLON.ArcRotateCamera(
+  camera = new BABYLON.ArcRotateCamera(
     "Camera",
     0,
     0,
@@ -29,49 +41,43 @@ const createScene = function () {
   camera.setPosition(new BABYLON.Vector3(2, 4, 10));
   camera.attachControl(canvas, true);
 
-  cube = BABYLON.MeshBuilder.CreateBox(
-    "box",
-    { width: 1, height: 1, depth: 1, updatable: true },
-    scene
-  );
-  cube.position.y = 0.52;
-  let material = new BABYLON.StandardMaterial(scene);
-  material.specularColor = new BABYLON.Color3(0, 0, 0);
-  cube.material = material;
-  cube.material.backFaceCulling = false;
-
-  let positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-  let nbVertices = positions.length / 3;
-  let colors = [];
-  let clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
-  for (let i = 0; i < nbVertices; i++) {
-    colors.push(clr.r, clr.g, clr.b, clr.a);
-  }
-  let indices = cube.getIndices();
-  if (!colors) {
-    let colors = new Array(4 * nbVertices);
-    colors = colors.fill(1);
-  }
-  cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-  cube.enableEdgesRendering();
-  cube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
-  cube.edgesWidth = 2;
-  cube.disableLighting = true;
-
-  const light = new BABYLON.HemisphericLight(
+  light = new BABYLON.HemisphericLight(
     "light",
     new BABYLON.Vector3(0, 1, 0),
     scene
   );
   light.intensity = 1;
 
-  const dragBehavior = new BABYLON.PointerDragBehavior({
-    dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
-  });
-  cube.addBehavior(dragBehavior);
-  dragBehavior.moveAttached = false;
+  mainCube = BABYLON.MeshBuilder.CreateBox(
+    "box",
+    { width: 1, height: 1, depth: 1, updatable: true },
+    scene
+  );
+  mainCube.position.y = 0.52;
+  mainCubeMaterial = new BABYLON.StandardMaterial(scene);
+  mainCubeMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+  mainCube.material = mainCubeMaterial;
+  mainCube.material.backFaceCulling = false;
 
-  const ground = BABYLON.MeshBuilder.CreateGround(
+  positions = mainCube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+  let nbVertices = positions.length / 3;
+  colors = [];
+  let clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
+  for (let i = 0; i < nbVertices; i++) {
+    colors.push(clr.r, clr.g, clr.b, clr.a);
+  }
+  indices = mainCube.getIndices();
+  if (!colors) {
+    colors = new Array(4 * nbVertices);
+    colors = colors.fill(1);
+  }
+  mainCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+  mainCube.enableEdgesRendering();
+  mainCube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
+  mainCube.edgesWidth = 2;
+  mainCube.disableLighting = true;
+
+  ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
     { width: 100, height: 100 },
     scene
@@ -80,6 +86,12 @@ const createScene = function () {
   ground.material.diffuseColor = new BABYLON.Color3(0.9, 0.94, 0.9);
   ground.material.specularColor = new BABYLON.Color3(0, 0, 0);
   ground.material.backFaceCulling = false;
+
+  const dragBehavior = new BABYLON.PointerDragBehavior({
+    dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
+  });
+  mainCube.addBehavior(dragBehavior);
+  dragBehavior.moveAttached = false;
 
   scene.onPointerDown = function (ev, pickResult) {
     if (pickResult.hit && pickResult.pickedMesh.name === "box") {
@@ -106,7 +118,7 @@ const createScene = function () {
           colors[colorIndex + 3] = currentColor.a;
         }
       }
-      cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+      mainCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
       let faceVector = new BABYLON.Vector3(
         faceNormal.x,
         faceNormal.y,
@@ -116,8 +128,8 @@ const createScene = function () {
     }
   };
   dragBehavior.onDragStartObservable.add((event) => {
-    const positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    const indices = cube.getIndices();
+    positions = mainCube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    indices = mainCube.getIndices();
     oldFacePositions = [];
     for (let i = 0; i < 6; i++) {
       const vertexIndex = indices[3 * face * 2 + i];
@@ -143,8 +155,8 @@ const createScene = function () {
     }
     const sign = Math.sign(delta.x + delta.y + delta.z);
     const extrudeVector = axis.scale(sign * delta.length());
-    let positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    let indices = cube.getIndices();
+    positions = mainCube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    indices = mainCube.getIndices();
     let newPositions = positions.slice();
     for (let i = 0; i < 6; i++) {
       const vertexIndex = indices[3 * face * 2 + i];
@@ -173,8 +185,7 @@ const createScene = function () {
     distance = newFacePositions[0].subtract(oldFacePositions[0]).length();
     distanceArial.innerText = distance.toFixed(2);
 
-    positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-    indices = cube.getIndices();
+    indices = mainCube.getIndices();
     const sharedVertices = [];
     for (let i = 0; i < positions.length / 3; i++) {
       const currentPosition = new BABYLON.Vector3(
@@ -210,61 +221,54 @@ const createScene = function () {
         }
       }
     }
-    if (cube2) {
-      cube2.dispose();
+    if (tempCube) {
+      tempCube.dispose();
     }
-    cube2 = BABYLON.MeshBuilder.CreateBox(
-      "box",
-      { updatable: true },
-      scene
-    );
-    cube2.position = cube.position;
-    cube2.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-    let material2 = new BABYLON.StandardMaterial("material2", scene);
-    material2.specularColor = new BABYLON.Color3(0, 0, 0);
-    material2.alpha = 0.8;
-    cube2.material = material2;
-    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-    cube2.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
+    tempCube = BABYLON.MeshBuilder.CreateBox("box", { updatable: true }, scene);
+    tempCube.position = mainCube.position;
+    tempCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    tempCubeMaterial = new BABYLON.StandardMaterial("material2", scene);
+    tempCubeMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    tempCubeMaterial.alpha = 0.8;
+    tempCube.material = tempCubeMaterial;
+    mainCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
+    tempCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
   });
-
   dragBehavior.onDragEndObservable.add((event) => {
-    if (cube2) {
-      cube2.dispose();
+    if (tempCube) {
+      tempCube.dispose();
     }
-    cube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
-    cube.enableEdgesRendering();
+    mainCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
+    mainCube.enableEdgesRendering();
   });
-
   resetButton.addEventListener("click", () => {
-    cube.dispose();
-    cube = BABYLON.MeshBuilder.CreateBox(
+    mainCube.dispose();
+    mainCube = BABYLON.MeshBuilder.CreateBox(
       "box",
       { width: 1, height: 1, depth: 1, updatable: true },
       scene
     );
-    cube.position.y = 0.52;
-    cube.material = material;
-    cube.material.backFaceCulling = false;
-    positions = cube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+    mainCube.position.y = 0.52;
+    mainCube.material = mainCubeMaterial;
+    mainCube.material.backFaceCulling = false;
+    positions = mainCube.getVerticesData(BABYLON.VertexBuffer.PositionKind);
     nbVertices = positions.length / 3;
     colors = [];
     clr = new BABYLON.Color4(0.85, 0.85, 0.85, 1);
     for (let i = 0; i < nbVertices; i++) {
       colors.push(clr.r, clr.g, clr.b, clr.a);
     }
-    indices = cube.getIndices();
+    indices = mainCube.getIndices();
     if (!colors) {
-      let colors = new Array(4 * nbVertices);
+      colors = new Array(4 * nbVertices);
       colors = colors.fill(1);
     }
-    cube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-    cube.enableEdgesRendering();
-    cube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
-    cube.edgesWidth = 2.0;
-    cube.addBehavior(dragBehavior);
+    mainCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    mainCube.enableEdgesRendering();
+    mainCube.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
+    mainCube.edgesWidth = 2.0;
+    mainCube.addBehavior(dragBehavior);
   });
-
   return scene;
 };
 
@@ -277,76 +281,3 @@ engine.runRenderLoop(function () {
 window.addEventListener("resize", function () {
   engine.resize();
 });
-
-// let showAxis = function (size) {
-//   let makeTextPlane = function (text, color, size) {
-//     let dynamicTexture = new BABYLON.DynamicTexture(
-//       "DynamicTexture",
-//       50,
-//       scene,
-//       true
-//     );
-//     dynamicTexture.hasAlpha = true;
-//     dynamicTexture.drawText(
-//       text,
-//       5,
-//       40,
-//       "bold 36px Arial",
-//       color,
-//       "transparent",
-//       true
-//     );
-//     let plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
-//     plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
-//     plane.material.backFaceCulling = false;
-//     plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
-//     plane.material.diffuseTexture = dynamicTexture;
-//     return plane;
-//   };
-
-//   let axisX = BABYLON.Mesh.CreateLines(
-//     "axisX",
-//     [
-//       new BABYLON.Vector3.Zero(),
-//       new BABYLON.Vector3(size, 0, 0),
-//       new BABYLON.Vector3(size * 0.95, 0.05 * size, 0),
-//       new BABYLON.Vector3(size, 0, 0),
-//       new BABYLON.Vector3(size * 0.95, -0.05 * size, 0),
-//     ],
-//     scene
-//   );
-//   axisX.color = new BABYLON.Color3(1, 0, 0);
-//   let xChar = makeTextPlane("X", "red", size / 10);
-//   xChar.position = new BABYLON.Vector3(0.9 * size, -0.05 * size, 0);
-
-//   let axisY = BABYLON.Mesh.CreateLines(
-//     "axisY",
-//     [
-//       new BABYLON.Vector3.Zero(),
-//       new BABYLON.Vector3(0, size, 0),
-//       new BABYLON.Vector3(-0.05 * size, size * 0.95, 0),
-//       new BABYLON.Vector3(0, size, 0),
-//       new BABYLON.Vector3(0.05 * size, size * 0.95, 0),
-//     ],
-//     scene
-//   );
-//   axisY.color = new BABYLON.Color3(0, 1, 0);
-//   let yChar = makeTextPlane("Y", "green", size / 10);
-//   yChar.position = new BABYLON.Vector3(0, 0.9 * size, -0.05 * size);
-
-//   let axisZ = BABYLON.Mesh.CreateLines(
-//     "axisZ",
-//     [
-//       new BABYLON.Vector3.Zero(),
-//       new BABYLON.Vector3(0, 0, size),
-//       new BABYLON.Vector3(0, -0.05 * size, size * 0.95),
-//       new BABYLON.Vector3(0, 0, size),
-//       new BABYLON.Vector3(0, 0.05 * size, size * 0.95),
-//     ],
-//     scene
-//   );
-//   axisZ.color = new BABYLON.Color3(0, 0, 1);
-//   let zChar = makeTextPlane("Z", "blue", size / 10);
-//   zChar.position = new BABYLON.Vector3(0, 0.05 * size, 0.9 * size);
-// };
-// showAxis(10);

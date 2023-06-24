@@ -42,3 +42,39 @@ export function createGround(scene) {
   ground.material.backFaceCulling = false;
   return ground;
 }
+
+export function createLine(scene, startPoints, endPoints, position) {
+  let start = new BABYLON.Vector3(
+    (startPoints[0].x +
+      startPoints[1].x +
+      startPoints[2].x +
+      startPoints[3].x) /
+      4,
+    (startPoints[0].y +
+      startPoints[1].y +
+      startPoints[2].y +
+      startPoints[3].y) /
+      4,
+    (startPoints[0].z +
+      startPoints[1].z +
+      startPoints[2].z +
+      startPoints[3].z) /
+      4
+  );
+  let end = new BABYLON.Vector3(
+    (endPoints[0].x + endPoints[1].x + endPoints[2].x + endPoints[3].x) / 4,
+    (endPoints[0].y + endPoints[1].y + endPoints[2].y + endPoints[3].y) / 4,
+    (endPoints[0].z + endPoints[1].z + endPoints[2].z + endPoints[3].z) / 4
+  );
+  let line = BABYLON.MeshBuilder.CreateLines(
+    "line",
+    {
+      points: [start, end],
+    },
+    scene
+  );
+  line.position = position;
+  line.color = new BABYLON.Color3(0, 0, 0);
+  line.isPickable = false;
+  return line;
+}

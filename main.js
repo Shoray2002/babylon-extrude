@@ -1,14 +1,18 @@
 import * as BABYLON from "babylonjs";
 import { createCamera } from "./libs/camera.js";
 import { createLight } from "./libs/lights.js";
-import { createMainCube, createTempCube, createGround } from "./libs/meshes.js";
+import {
+  createMainCube,
+  createTempCube,
+  createGround,
+  createLine,
+} from "./libs/meshes.js";
 import { setupDragBehavior } from "./libs/behaviours.js";
 const canvas = document.getElementById("canvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 const distanceArial = document.getElementById("distance");
 const resetButton = document.getElementById("reset");
 
-// scene variables
 let mainCube,
   face,
   faceNormal,
@@ -19,7 +23,8 @@ let mainCube,
   tempCubeMaterial,
   nbVertices,
   clr,
-  dragBehavior;
+  dragBehavior,
+  line;
 let positions = [],
   colors = [],
   indices = [],
@@ -159,6 +164,15 @@ const createScene = function () {
         }
       }
     }
+    if (line) {
+      line.dispose();
+    }
+    line = createLine(
+      scene,
+      oldFacePositions,
+      newFacePositions,
+      mainCube.position
+    );
     tempPositions = positions.slice();
     for (let i = 0; i < oldFacePositions.length; i++) {
       const currentOldVertex = oldFacePositions[i];
@@ -184,18 +198,24 @@ const createScene = function () {
       tempCube.dispose();
     }
     tempCube = createTempCube(scene, mainCube.position);
-    mainCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
     tempCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
-    tempCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors); 
+    tempCube.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    mainCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
   });
   dragBehavior.onDragEndObservable.add((event) => {
     if (tempCube) {
       tempCube.dispose();
     }
-    mainCube.setVerticesData(BABYLON.VertexBuffer.PositionKind, tempPositions);
+    if (line) {
+      line.dispose();
+    }
+    if (tempPositions.length)
+      mainCube.setVerticesData(
+        BABYLON.VertexBuffer.PositionKind,
+        tempPositions
+      );
     mainCube.enableEdgesRendering();
   });
-
   return scene;
 };
 

@@ -3,7 +3,7 @@
 This is a simple Babylon.js application that allows users to extrude a cube from its faces to modify its shape
 
 <!-- demo video -->
-![Babylon Extrude Demo](./assets/demo.mp4)
+<img alt="Demo" src="./assets/demo.gif" width="800px">
 
 ## Demo
 Checkout the demo at [Babylon Extrude](https://babylon-extrude.netlify.app/)

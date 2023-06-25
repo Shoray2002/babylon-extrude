@@ -1,6 +1,6 @@
 # Babylon Extrude
 
-This is a simple Babylon.js application that allows users to extrude a cube from its faces to modify its shape
+This is a simple Babylon.js application that allows users to extrude or intrude a cube from its faces to modify its shape
 
 <!-- demo video -->
 <img alt="Demo" src="./assets/demo.gif" width="800px">
@@ -25,7 +25,7 @@ Once you have the project running, you can use the check out the following contr
 - Use the right mouse button to pan the camera around the scene.
 - Use the scroll wheel to zoom in and out.
 - Click and drag on the canvas to move the camera around the scene.
-- Click on a face of the cube to select it and then drag the mouse to extrude the face.
+- Click on a face of the cube to select it and then drag the mouse to extrude or intrude the face.
 - View the extrusion distance in the top center of the screen.
 - Press the "Reset" button to reset the cube to its default shape.
 

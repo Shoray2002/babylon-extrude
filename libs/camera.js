@@ -18,5 +18,6 @@ export function createCamera(scene, canvas) {
   camera.upperBetaLimit = Math.PI / 2 - 0.05;
   camera.setPosition(new BABYLON.Vector3(2, 4, 10));
   camera.attachControl(canvas, true);
+  camera.radius = 8;
   return camera;
 }

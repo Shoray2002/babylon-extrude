@@ -20,6 +20,7 @@ const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
 // Declare several variables and initialize them to empty arrays or zero values
 let mainCube,
+  camera,
   face,
   faceNormal,
   delta,
@@ -52,7 +53,7 @@ const createScene = function () {
   scene.ambientColor = new BABYLON.Color3(0.75, 0.75, 0.75);
 
   // Create a camera, light, and ground in the scene
-  createCamera(scene, canvas);
+  camera = createCamera(scene, canvas);
   createLight(scene);
   createGround(scene);
 
@@ -272,7 +273,7 @@ window.addEventListener("resize", function () {
 
 /**
  * This adds a click event listener to the reset button.
- * When the button is clicked, it disposes of the current mainCube object,
+ * When the button is clicked, it disposes of the current mainCube object, and sets the camera radius to 8,
  * clears the tempPositions array, creates a new mainCube object and assigns it to the mainCube variable,
  * gets the positions of the vertices of the mainCube object, calculates the number of vertices,
  * creates an array to store the colors of the vertices, creates a new color object with RGBA values
@@ -281,6 +282,7 @@ window.addEventListener("resize", function () {
  */
 resetButton.addEventListener("click", () => {
   mainCube.dispose();
+  camera.radius = 8;
   tempPositions = [];
   mainCube = createMainCube(scene);
   positions = mainCube.getVerticesData(BABYLON.VertexBuffer.PositionKind);

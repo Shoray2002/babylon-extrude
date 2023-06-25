@@ -21,13 +21,15 @@ To get started with this project, follow these steps:
 ## Usage
 Once you have the project running, you can use the check out the following controls and features:
 
-- Use the mouse to rotate the camera around the scene.
+- Use the mouse to move the camera around the scene.
 - Use the right mouse button to pan the camera around the scene.
 - Use the scroll wheel to zoom in and out.
-- Click and drag on the canvas to move the camera around the scene.
-- Click on a face of the cube to select it and then drag the mouse to extrude or intrude the face.
-- View the extrusion distance in the top center of the screen.
-- Press the "Reset" button to reset the cube to its default shape.
+- Click on a face of the cube to select it and then drag the mouse to extrude or intrude the face. Successive and Multiple of such operations are also allowed.
+- View the extrusion/intrusion distance in the top center of the screen.
+- Press the "Reset" button to reset the cube to its default shape and the camera to its default zoom level.
+
+## Cons
+The project currently only supports single pointer input hence might cause glitches on multi pointer input devices like mobile touchscreens
 
 ## Contributing
 

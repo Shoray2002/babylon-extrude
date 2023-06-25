@@ -180,8 +180,7 @@ const createScene = function () {
       }
     }
     distance = newFacePositions[0].subtract(oldFacePositions[0]).length();
-    distanceArial.innerText =
-      "Distance: " + (sign == -1 ? "-" : "") + distance.toFixed(2);
+    distanceArial.innerText = "Distance: " + distance.toFixed(2);
 
     // Get the shared vertices between the clicked face and the rest of the cube
     const sharedVertices = [];
@@ -253,7 +252,7 @@ const createScene = function () {
     mainCube.enableEdgesRendering();
     distanceArial.style.display = "none";
   });
-  
+
   // Return the newly created scene
   return scene;
 };

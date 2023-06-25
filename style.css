@@ -1,3 +1,4 @@
+/* Set the overflow, width, height, margin, and padding for the html and body elements */
 html,
 body {
   overflow: hidden;
@@ -7,31 +8,55 @@ body {
   padding: 0;
 }
 
+/* Set the width, height, and touch-action for the canvas element */
 #canvas {
   width: 100%;
   height: 100%;
   touch-action: none;
 }
 
+/* Set the position, bottom, left, and width for the input element */
 input {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 400px;
 }
-#distance{
+
+/* Set the position, top, left, font-size, color, and display for the distance element */
+#distance {
   position: absolute;
-  bottom: 0;
-  left: 0; 
-  color: aliceblue;
+  top: 10px;
+  left: 0;
+  font-size: 20px;
+  color: rgb(0, 0, 0);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
 }
 
-#reset{
+/* Set the position, font-size, text-transform, bottom, left, color, padding, border-radius, background-color, and cursor for the reset element */
+#reset {
   position: absolute;
-  bottom: 0;
-  left: 0; 
+  font-size: 20px;
+  text-transform: uppercase;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   color: rgb(255, 255, 255);
-  padding: 10px;
+  padding: 10px 20px;
+  border-radius: 5px;
   background-color: rgb(126, 149, 169);
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Set the background-color for the reset element when hovered over */
+#reset:hover {
+  background-color: rgb(255, 73, 53);
+}
+
+/* Set the background-color for the reset element when clicked */
+#reset:active {
+  background-color: rgb(255, 25, 0);
 }

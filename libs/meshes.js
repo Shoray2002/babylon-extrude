@@ -1,3 +1,8 @@
+/**
+ * Creates a new main cube mesh in the given scene.
+ * @param {BABYLON.Scene} scene - The scene to create the mesh in.
+ * @returns {BABYLON.Mesh} The created mesh.
+ */
 export function createMainCube(scene) {
   let mainCube = BABYLON.MeshBuilder.CreateBox(
     "box",
@@ -16,6 +21,12 @@ export function createMainCube(scene) {
   return mainCube;
 }
 
+/**
+ * Creates a new temporary cube mesh in the given scene at the given position.
+ * @param {BABYLON.Scene} scene - The scene to create the mesh in.
+ * @param {BABYLON.Vector3} position - The position to create the mesh at.
+ * @returns {BABYLON.Mesh} The created mesh.
+ */
 export function createTempCube(scene, position) {
   let tempCube = BABYLON.MeshBuilder.CreateBox(
     "box",
@@ -30,6 +41,11 @@ export function createTempCube(scene, position) {
   return tempCube;
 }
 
+/**
+ * Creates a new ground mesh in the given scene.
+ * @param {BABYLON.Scene} scene - The scene to create the mesh in.
+ * @returns {BABYLON.Mesh} The created mesh.
+ */
 export function createGround(scene) {
   let ground = BABYLON.MeshBuilder.CreateGround(
     "ground",
@@ -43,6 +59,14 @@ export function createGround(scene) {
   return ground;
 }
 
+/**
+ * Creates a new line mesh in the given scene with the given start and end points and position.
+ * @param {BABYLON.Scene} scene - The scene to create the mesh in.
+ * @param {Array<BABYLON.Vector3>} startPoints - The start points of the line.
+ * @param {Array<BABYLON.Vector3>} endPoints - The end points of the line.
+ * @param {BABYLON.Vector3} position - The position to create the mesh at.
+ * @returns {BABYLON.Mesh} The created mesh.
+ */
 export function createLine(scene, startPoints, endPoints, position) {
   let start = new BABYLON.Vector3(
     (startPoints[0].x +

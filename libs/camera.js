@@ -1,3 +1,9 @@
+/**
+ * Creates an ArcRotateCamera in the given scene and attaches it to the given canvas.
+ * @param {BABYLON.Scene} scene - The scene to create the camera in.
+ * @param {HTMLCanvasElement} canvas - The canvas to attach the camera to.
+ * @returns {BABYLON.ArcRotateCamera} The created camera.
+ */
 export function createCamera(scene, canvas) {
   const camera = new BABYLON.ArcRotateCamera(
     "Camera",

@@ -15,9 +15,10 @@ To get started with this project, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Install Node.js and npm using this [helper](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) if not already.
-3. Install the dependencies by running `npm install`.
-4. Start the development server by running `npm run dev` (more info in [package.json](package.json)).
-5. Open your web browser and navigate to the link shown in the terminal.
+3. Open a terminal and navigate to the cloned repository's directory.
+4. Install the dependencies by running `npm install`.
+5. Start the development server by running `npm run dev` (more info in [package.json](package.json)).
+6. Open your web browser and navigate to the link shown in the terminal.
 
 ## Usage
 Once you have the project running, you can use the check out the following controls and features:

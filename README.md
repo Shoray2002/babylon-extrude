@@ -14,7 +14,7 @@ To get started with this project, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Install the dependencies by running `npm install`.
-3. Start the development server by running `npm run dev`.
+3. Start the development server by running `npm run dev` (more info in [package.json](package.json)).
 4. Open your web browser and navigate to the link shown in the terminal.
 
 ## Usage

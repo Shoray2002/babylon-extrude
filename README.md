@@ -2,6 +2,12 @@
 
 This is a simple Babylon.js application that allows users to extrude a cube from its faces to modify its shape
 
+https://github.com/Shoray2002/babylon-extrude/assets/76423272/b8b57cc8-bbff-48eb-8399-9b751b9a5a31
+
+## Demo
+Checkout the demo at [Babylon Extrude](https://babylon-extrude.netlify.app/)
+
+
 ## Getting Started
 
 To get started with this project, follow these steps:

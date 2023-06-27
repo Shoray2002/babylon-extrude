@@ -9,7 +9,7 @@ export function createMainCube(scene) {
     { width: 1, height: 1, depth: 1, updatable: true },
     scene
   );
-  mainCube.position.y = 0.52;
+  mainCube.position.y = 0.49 ;
   let mainCubeMaterial = new BABYLON.StandardMaterial(scene);
   mainCubeMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
   mainCube.material = mainCubeMaterial;
